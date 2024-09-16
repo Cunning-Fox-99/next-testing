@@ -136,7 +136,7 @@ const ProfilePage = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Days Off</label>
+            <label className="block text-sm font-medium text-gray-700">Work Days</label>
             <div className="flex space-x-2 mt-2">
               {daysOfWeek.map(day => (
                   <button

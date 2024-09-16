@@ -1,7 +1,7 @@
 import connectDB from "@/config/database";
 import { getUserIdFromRequest } from "@/utils/authUtils";
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from 'bcrypt';
+
 import User from "@/models/User";
 
 interface RequestBody {

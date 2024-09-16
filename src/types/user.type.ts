@@ -1,4 +1,5 @@
-export type UserType = {
+export interface UserType {
+	_id: string,
 	images: string[],
 	email: string,
 	profileImage?: string,

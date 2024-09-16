@@ -21,8 +21,8 @@ export async function POST(request: NextRequest) {
 		const body: RequestBody = await request.json();
 		const { password } = body;
 	  
-		if (!password || password.length < 8) {
-		  return new NextResponse('Password must be at least 8 characters long', { status: 400 });
+		if (!password || password.length < 6) {
+		  return new NextResponse('Password must be at least 6 characters long', { status: 400 });
 		}
 	  
 		const hashedPassword = await bcrypt.hash(password, 10);
