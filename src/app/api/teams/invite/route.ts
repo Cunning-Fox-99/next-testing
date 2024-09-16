@@ -1,7 +1,7 @@
-// app/api/teams/invite/route.ts
 import connectDB from "@/config/database";
 import Team from "@/models/Team";
 import User from "@/models/User";
+import Invitation from "@/models/Invitation";
 import { getUserIdFromRequest } from "@/utils/authUtils";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -40,7 +40,16 @@ export async function POST(request: NextRequest) {
             return new NextResponse('User is already a member', { status: 400 });
         }
 
-        // Отправляем приглашение (например, по email или в систему уведомлений)
+        // Создаем приглашение
+        const invitation = new Invitation({
+            teamId: team._id,
+            userId: user._id,
+            invitedBy: userId
+        });
+
+        await invitation.save();
+
+        // Здесь можно отправить уведомление пользователю, например, по email
 
         return NextResponse.json({ message: 'Invitation sent' });
     } catch (error) {
