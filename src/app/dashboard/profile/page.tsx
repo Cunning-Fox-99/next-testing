@@ -26,7 +26,9 @@ const ProfilePage = () => {
         setValue('about', data.about);
         setValue('workHours', data.workHours);
         setValue('profession', data.profession);
+        setValue('fio', data.fio);
         setSelectedDays(data.daysOff || []);
+        console.log(data)
       } catch (error) {
         console.error('Failed to load profile', error);
       }

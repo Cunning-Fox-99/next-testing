@@ -9,7 +9,7 @@ import { UserType } from '@/types/user.type';
 const DashboardHeader = () => {
 	const router = useRouter();
 	const pathname = usePathname();
-	console.log(pathname)
+	// console.log(pathname)
 	const [active, setActive] = useState(false)
 	const [user, setUser] = useState<UserType | null>(null)
 

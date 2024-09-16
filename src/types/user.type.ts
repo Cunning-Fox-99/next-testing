@@ -7,5 +7,5 @@ export type UserType = {
 	profession?: string,
 	about?: string,
 	daysOff?: string[],
-	fio: string
+	fio?: string
 }
