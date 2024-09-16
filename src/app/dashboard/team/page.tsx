@@ -7,7 +7,7 @@ import Modal from '@/components/Modal';
 const TeamsPage = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [myTeams, setMyTeams] = useState<{ _id: string; name: string }[]>([]);
-    const [invitations, setInvitations] = useState<{ _id: string; team: { _id: string; name: string } }[]>([]);
+    const [invitations, setInvitations] = useState<{ _id: string; teamId: { _id: string; name: string } }[]>([]);
     const [searchResults, setSearchResults] = useState<{ _id: string; name: string }[]>([]);
     const [isCreateTeamModalOpen, setIsCreateTeamModalOpen] = useState(false);
     const [teamName, setTeamName] = useState('');
@@ -143,7 +143,7 @@ const TeamsPage = () => {
                         {invitations.map((invite) => (
                             <li key={invite._id} className="p-4 border border-gray-200 rounded-md">
                                 <div className="flex justify-between items-center">
-                                    <span>{invite.team.name}</span>
+                                    <span>{invite.teamId.name}</span>
                                     <div>
                                         <button
                                             onClick={() => handleInviteResponse(invite._id, 'accept')}
