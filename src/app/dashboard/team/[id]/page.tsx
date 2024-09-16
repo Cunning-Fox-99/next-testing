@@ -53,8 +53,6 @@ const TeamPage = ({ params }: { params: { id: string } }) => {
     };
 
     useEffect(() => {
-
-
         fetchTeam();
     }, [params.id]);
 

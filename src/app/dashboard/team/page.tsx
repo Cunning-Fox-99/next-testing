@@ -14,21 +14,22 @@ const TeamsPage = () => {
     const [teamDescription, setTeamDescription] = useState('');
     const router = useRouter();
 
+    const fetchTeamsAndInvitations = async () => {
+        try {
+            const response = await fetch('/api/teams/my-teams');
+            if (response.ok) {
+                const data = await response.json();
+                console.log(data)
+                setMyTeams(data.teams);
+                setInvitations(data.invitations);
+            }
+        } catch (error) {
+            console.error('Ошибка при получении команд и приглашений:', error);
+        }
+    };
+
     useEffect(() => {
         // Получение команд и приглашений при загрузке компонента
-        const fetchTeamsAndInvitations = async () => {
-            try {
-                const response = await fetch('/api/teams/my-teams');
-                if (response.ok) {
-                    const data = await response.json();
-                    setMyTeams(data.teams);
-                    setInvitations(data.invitations);
-                }
-            } catch (error) {
-                console.error('Ошибка при получении команд и приглашений:', error);
-            }
-        };
-
         fetchTeamsAndInvitations();
     }, []);
 
