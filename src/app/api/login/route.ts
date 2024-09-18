@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     cookie.serialize('authToken', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // Установите true в production
-      maxAge: 3600, // Время жизни токена
+      maxAge: 2592000, // Время жизни токена
       path: '/',
     })
   );

@@ -26,7 +26,7 @@ const ProfilePage = () => {
         setValue('about', data.about);
         setValue('workHours', data.workHours);
         setValue('profession', data.profession);
-        setValue('fio', data.fio);
+        setValue('phone', data.phone);
         setSelectedDays(data.daysOff || []);
         console.log(data)
       } catch (error) {
@@ -91,37 +91,18 @@ const ProfilePage = () => {
             <label htmlFor="username" className="block text-sm font-medium text-gray-700">Username</label>
             <input
                 id="username"
+                placeholder="John Doe"
                 {...register('username')}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </div>
 
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700">FIO</label>
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700">Phone</label>
             <input
-                id="fio"
-                placeholder="Johh Doe"
-                {...register('fio')}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="about" className="block text-sm font-medium text-gray-700">About</label>
-            <textarea
-                id="about"
-                {...register('about')}
-                rows={4}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="workHours" className="block text-sm font-medium text-gray-700">Work Hours</label>
-            <input
-                id="workHours"
-                placeholder="10:00 - 22:00"
-                {...register('workHours')}
+                id="phone"
+                placeholder="Phone number"
+                {...register('phone')}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </div>
@@ -134,6 +115,18 @@ const ProfilePage = () => {
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </div>
+
+
+          <div>
+            <label htmlFor="workHours" className="block text-sm font-medium text-gray-700">Work Hours</label>
+            <input
+                id="workHours"
+                placeholder="10:00 - 22:00"
+                {...register('workHours')}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            />
+          </div>
+
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Work Days</label>
@@ -153,6 +146,16 @@ const ProfilePage = () => {
                   </button>
               ))}
             </div>
+          </div>
+
+          <div>
+            <label htmlFor="about" className="block text-sm font-medium text-gray-700">About me</label>
+            <textarea
+                id="about"
+                {...register('about')}
+                rows={4}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            />
           </div>
 
           <button

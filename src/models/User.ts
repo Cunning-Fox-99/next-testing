@@ -10,7 +10,7 @@ const UserSchema = new Schema({
   workHours: { type: String },
   profession: { type: String },
   daysOff: [{ type: String }],
-  fio: { type: String }
+  phone: { type: String }
 });
 
 const User = models.User || model('User', UserSchema);

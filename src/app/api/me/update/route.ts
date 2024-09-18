@@ -9,7 +9,7 @@ interface RequestBody {
     about?: string;
     workHours?: string;
     profession?: string;
-    fio?: string
+    phone?: string;
     daysOff?: string[];
 }
 
@@ -30,25 +30,30 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: 'User not found' }, { status: 404 });
         }
 
-        // Удаляем поля, которые не были переданы
-        const updateFields: Partial<RequestBody> = {};
-        if (body.username) updateFields.username = body.username;
-        if (body.about) updateFields.about = body.about;
-        if (body.workHours) updateFields.workHours = body.workHours;
-        if (body.profession) updateFields.profession = body.profession;
-        if (body.fio) updateFields.fio = body.fio;
-        if (body.daysOff) updateFields.daysOff = body.daysOff;
-
-        console.log('Update fields:', updateFields);
-
-        const updatedUser = await User.findByIdAndUpdate(userId, updateFields, { new: true });
-
-        if (!updatedUser) {
+        // Находим пользователя по ID
+        const user = await User.findById(userId);
+        if (!user) {
             return NextResponse.json({ message: 'User not found' }, { status: 404 });
         }
 
+        // Обновляем только переданные поля
+        if (body.username) user.username = body.username;
+        if (body.about) user.about = body.about;
+        if (body.workHours) user.workHours = body.workHours;
+        if (body.profession) user.profession = body.profession;
+        if (body.phone) user.phone = body.phone;
+        if (body.daysOff) user.daysOff = body.daysOff;
+        console.log(body)
+        console.log('User before saving:', user);
+
+        // Сохраняем пользователя с обновленными данными
+        const updatedUser = await user.save();
+
+        console.log('Updated user:', updatedUser);
+
         return NextResponse.json(updatedUser, { status: 200 });
     } catch (error) {
+        console.error('Error updating user:', error);
         return NextResponse.json({ message: 'Server error' }, { status: 500 });
     }
 }

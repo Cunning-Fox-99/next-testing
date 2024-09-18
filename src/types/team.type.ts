@@ -1,14 +1,12 @@
+import {UserType} from "@/types/user.type";
+
 export interface  Team {
+    _id: string;
     name: string;
     description: string;
     workHours: string;
-    members: Member[];
+    members: UserType[];
     portfolio: string[];
     workDays?: string[];
     isOwner?: boolean;
-}
-
-export interface Member {
-    fio: string;
-    email: string;
 }
