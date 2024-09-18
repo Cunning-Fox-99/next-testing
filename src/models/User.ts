@@ -10,7 +10,8 @@ const UserSchema = new Schema({
   workHours: { type: String },
   profession: { type: String },
   daysOff: [{ type: String }],
-  phone: { type: String }
+  phone: { type: String },
+  chats: [{ type: Schema.Types.ObjectId, ref: 'Chat' }]
 });
 
 const User = models.User || model('User', UserSchema);

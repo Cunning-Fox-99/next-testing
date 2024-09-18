@@ -1,10 +1,27 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { UserType } from "@/types/user.type";
 
 const Page = ({ params }: { params: { id: string } }) => {
-
     const [user, setUser] = useState<UserType | null>(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); // Для индикации загрузки чата
+
+    const router = useRouter();
+
+    const checkAuth = async () => {
+        try {
+            const res = await fetch('/api/check-token', {
+                method: 'POST',
+            });
+            const data = await res.json();
+            setIsAuthenticated(data.isValid);
+        } catch (err) {
+            console.error('Error checking token', err);
+        }
+    };
 
     const getUser = async () => {
         try {
@@ -25,8 +42,36 @@ const Page = ({ params }: { params: { id: string } }) => {
         }
     };
 
+    const createChat = async () => {
+        if (!isAuthenticated) {
+            router.push('/login');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/chat/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    recipientId: params.id, // ID пользователя, которому мы хотим написать
+                }),
+            });
+
+            if (response.ok) {
+                const chatData = await response.json();
+                console.log('Chat created successfully', chatData);
+                router.push(`/dashboard/chats`);
+            } else {
+                throw new Error('Failed to create chat');
+            }
+        } catch (error) {
+            console.error('Error creating chat:', error);
+        }
+    };
+
+
     useEffect(() => {
-        getUser();
+        getUser().then(() => checkAuth());
     }, []);
 
     if (!user) {
@@ -66,35 +111,15 @@ const Page = ({ params }: { params: { id: string } }) => {
                         )}
                     </div>
 
-                    <div className="mt-4">
-                        <h2 className="text-lg font-semibold text-gray-800">Work Details</h2>
-                        {user.workHours && (
-                            <p className="mt-2 text-gray-600">
-                                <strong>Work Hours:</strong> {user.workHours}
-                            </p>
-                        )}
-                        {user.daysOff && user.daysOff.length > 0 && (
-                            <p className="mt-1 text-gray-600">
-                                <strong>Days Off:</strong> {user.daysOff.join(', ')}
-                            </p>
-                        )}
+                    <div className="mt-6">
+                        <button
+                            onClick={createChat}
+                            className={`px-4 py-2 bg-blue-500 text-white rounded-md ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? 'Creating Chat...' : 'Start Chat'}
+                        </button>
                     </div>
-
-                    {user.images && user.images.length > 0 && (
-                        <div className="mt-6">
-                            <h2 className="text-lg font-semibold text-gray-800">Gallery</h2>
-                            <div className="mt-4 grid grid-cols-2 gap-4">
-                                {user.images.map((image, index) => (
-                                    <img
-                                        key={index}
-                                        src={image}
-                                        alt={`User image ${index + 1}`}
-                                        className="h-40 w-full object-cover rounded-md"
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>

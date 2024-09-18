@@ -119,10 +119,10 @@ const DashboardHeader = () => {
                                         Projects
                                     </Link>
                                     <Link
-                                        href="/dashboard/calendar"
-                                        className={`rounded-md ${pathname === '/dashboard/calendar' ? 'bg-gray-900' : null} px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white`}
+                                        href="/dashboard/orders"
+                                        className={`rounded-md ${pathname === '/dashboard/orders' ? 'bg-gray-900' : null} px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white`}
                                     >
-                                        Calendar
+                                        Orders
                                     </Link>
                                     <Link
                                         href="/dashboard/chats"
@@ -208,7 +208,7 @@ const DashboardHeader = () => {
                         <Link href="/dashboard/team" className="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Team</Link>
                         <Link href="/dashboard/project" className="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Projects</Link>
                         <Link href="/dashboard/calendar" className="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Calendar</Link>
-                        <Link href="/dashboard/chats" className="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Chats</Link>
+                        <Link href="/dashboard/orders" className="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Orders</Link>
                     </div>
                 </div>
             </nav>
