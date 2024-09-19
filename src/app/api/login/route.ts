@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Генерация токена
-  const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
+  const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '30d' });
 
   
   // Установка токена в куки

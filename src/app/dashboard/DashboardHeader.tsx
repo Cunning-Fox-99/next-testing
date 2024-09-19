@@ -36,19 +36,14 @@ const DashboardHeader = () => {
         setShowNotifications(prev => !prev);
     };
 
-    useEffect(() => {
-        // Simulate fetching notifications
-        const fetchNotifications = async () => {
-            // Replace this URL with your actual API endpoint for notifications
-            const response = await fetch('/api/notifications');
-            if (response.ok) {
-                const data: Notification[] = await response.json();
-                setNotifications(data);
-            }
-        };
-
-        fetchNotifications();
-    }, []);
+    const fetchNotifications = async () => {
+        // Replace this URL with your actual API endpoint for notifications
+        const response = await fetch('/api/notifications');
+        if (response.ok) {
+            const data: Notification[] = await response.json();
+            setNotifications(data);
+        }
+    };
 
     return (
         <>
