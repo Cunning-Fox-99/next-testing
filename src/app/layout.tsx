@@ -25,10 +25,10 @@ export default function RootLayout({children,}: Readonly<{
     console.log('Rendering RootLayout');
     return (
         <html lang="en">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <Header/>
-        {children}
-        </body>
+            <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+                <Header/>
+                {children}
+            </body>
         </html>
     );
 }

@@ -8,5 +8,6 @@ export interface UserType {
 	profession?: string,
 	about?: string,
 	daysOff?: string[],
-	phone?: string
+	phone?: string,
+
 }

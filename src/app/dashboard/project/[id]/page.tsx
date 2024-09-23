@@ -1,29 +1,46 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-
-interface Project {
-    id: string;
-    title: string;
-    participants: number;
-    date: string; // Assuming date is in 'YYYY-MM-DD' format
-    time: string; // Time as 'HH:mm'
-    description: string;
-}
+import { IProjectOptional } from "@/types/project.type";
 
 const ProjectPage = ({ params }: { params: { id: string } }) => {
     const router = useRouter();
+    const [project, setProject] = useState<IProjectOptional | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    // Replace this mock data with actual project fetching logic
-    const project: Project = {
-        id: params.id,
-        title: 'Project A',
-        participants: 5,
-        date: '2024-10-10',
-        time: '14:00',
-        description: 'This project is about building a web platform for photographers.',
+    const fetchProject = async () => {
+        try {
+            const response = await fetch(`/api/projects/${params.id}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch project');
+            }
+            const data = await response.json();
+            setProject(data);
+            console.log(data);
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
+
+    useEffect(() => {
+        fetchProject();
+    }, [params.id]);
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
+    if (error) {
+        return <div>Error: {error}</div>;
+    }
+
+    if (!project) {
+        return <div>No project found.</div>;
+    }
 
     return (
         <div className="p-6 max-w-4xl mx-auto">
@@ -31,9 +48,13 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
 
             {/* Project Details */}
             <div className="space-y-4">
-                <p><strong>Participants:</strong> {project.participants} people</p>
-                <p><strong>Date:</strong> {new Date(project.date).toLocaleDateString()}</p>
-                <p><strong>Time:</strong> {project.time}</p>
+                <p><strong>Participants:</strong> {project.team!.length || 0} people</p>
+                <p>
+                    <strong>Date:</strong> {project.eventDate ? new Date(project.eventDate).toLocaleDateString() : 'N/A'}
+                </p>
+                <p>
+                    <strong>Time:</strong> {project.eventDate ? new Date(project.eventDate).toLocaleTimeString() : 'N/A'}
+                </p>
                 <p><strong>Description:</strong> {project.description}</p>
             </div>
 
@@ -46,6 +67,7 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
             </button>
         </div>
     );
+
 };
 
 export default ProjectPage;

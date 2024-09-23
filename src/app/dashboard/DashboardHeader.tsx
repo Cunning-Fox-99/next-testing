@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { UserType } from '@/types/user.type';
+import {useDispatch} from "react-redux";
+// import { setUser as setUserInStore } from '@/store/slices/userSlice';
 
 interface Notification {
     id: string;
@@ -14,13 +16,18 @@ interface Notification {
 const DashboardHeader = () => {
     const router = useRouter();
     const pathname = usePathname();
+    const dispatch = useDispatch();
+
     const [active, setActive] = useState(false);
-    const [user, setUser] = useState<UserType | null>(null);
+    const [localUser, setLocalUser] = useState<UserType | null>(null); // Переименовали
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [showNotifications, setShowNotifications] = useState(false);
 
-    const getUser = () => {
-        fetch('/api/me').then(r => r.json()).then(r => setUser(r));
+    const getUser = async () => {
+        const response = await fetch('/api/me');
+        const userData: UserType = await response.json();
+        setLocalUser(userData); // Используем локальное состояние
+       // dispatch(setUserInStore(userData)); // Используем Redux-действие
     };
 
     useEffect(() => {
@@ -168,7 +175,7 @@ const DashboardHeader = () => {
 
                             {/* Profile dropdown */}
                             <div onClick={() => setActive(prevState => !prevState)} className="relative ml-3">
-                                {user && (
+                                {localUser && (
                                     <div>
                                         <button
                                             type="button"
@@ -183,7 +190,7 @@ const DashboardHeader = () => {
                                                 width={50}
                                                 height={50}
                                                 className="h-8 w-8 rounded-full"
-                                                src={user?.profileImage ? user.profileImage : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"} alt="" /> </button> </div> )}
+                                                src={localUser?.profileImage ? localUser.profileImage : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"} alt="" /> </button> </div> )}
                                 {active && (
                                     <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button">
                                         <Link href="/dashboard/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem" id="user-menu-item-0">Your Profile</Link>
