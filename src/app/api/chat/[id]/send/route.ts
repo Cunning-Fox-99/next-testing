@@ -35,7 +35,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
         // Проверяем, что пользователь является участником чата
         const isParticipant = chat.participants.some((participant: any) =>
-            participant._id.toString() === userId.toString()
+            participant._id.toString() === userId!.toString()
         );
 
         if (!isParticipant) {
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         // Обновляем поле notReadedMessages для всех участников, кроме отправителя
         chat.participants.forEach((participant: any) => {
             const participantId = participant._id.toString();
-            if (participantId !== userId.toString()) {
+            if (participantId !== userId!.toString()) {
                 chat.notReadedMessages.set(
                     participantId,
                     (chat.notReadedMessages.get(participantId) || 0) + 1
