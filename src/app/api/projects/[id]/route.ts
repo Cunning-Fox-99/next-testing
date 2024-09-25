@@ -13,9 +13,7 @@ interface PopulatedProject extends IProjectOptional {
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
     try {
         await connectDB();
-        const userIdResult = getUserIdFromRequest(request);
-
-        const userIdResult = getUserIdFromRequest(request);
+              const userIdResult = getUserIdFromRequest(request);
 
         // Проверка авторизации пользователя
         if (!userIdResult.authorized) {

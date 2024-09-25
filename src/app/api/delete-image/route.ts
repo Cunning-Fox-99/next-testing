@@ -11,9 +11,7 @@ interface DeleteImageRequestBody {
 export async function DELETE(request: NextRequest) {
     try {
         await connectDB();
-        const userIdResult = getUserIdFromRequest(request);
-
-        const userIdResult = getUserIdFromRequest(request);
+              const userIdResult = getUserIdFromRequest(request);
 
         // Проверка авторизации пользователя
         if (!userIdResult.authorized) {

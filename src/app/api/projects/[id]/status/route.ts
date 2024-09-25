@@ -9,9 +9,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         await connectDB();
 
         // Извлекаем ID пользователя из токена
-        const userIdResult = getUserIdFromRequest(request);
-
-        const userIdResult = getUserIdFromRequest(request);
+              const userIdResult = getUserIdFromRequest(request);
 
         // Проверка авторизации пользователя
         if (!userIdResult.authorized) {
