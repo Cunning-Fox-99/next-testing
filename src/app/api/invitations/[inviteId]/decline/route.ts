@@ -6,7 +6,6 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest, { params }: { params: { inviteId: string } }) {
     try {
         await connectDB();
-        const userIdResult = getUserIdFromRequest(request);
 
         const userIdResult = getUserIdFromRequest(request);
 
