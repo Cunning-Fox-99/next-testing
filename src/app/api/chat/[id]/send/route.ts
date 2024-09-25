@@ -11,8 +11,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
         // Получаем userId из токена
         const userIdResult = getUserIdFromRequest(request);
-        if (userIdResult instanceof NextResponse) {
-            return userIdResult; // Если токен недействителен, вернуть ошибку
+
+        // Проверка авторизации пользователя
+        if (!userIdResult.authorized) {
+            return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
         }
 
         const { userId } = userIdResult;
