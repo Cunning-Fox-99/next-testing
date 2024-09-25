@@ -19,8 +19,6 @@ export async function POST(req: NextRequest) {
     try {
         const userIdResult = getUserIdFromRequest(req);
 
-        const userIdResult = getUserIdFromRequest(request);
-
         // Проверка авторизации пользователя
         if (!userIdResult.authorized) {
             return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
