@@ -19,8 +19,11 @@ export async function POST(req: NextRequest) {
     try {
         const userIdResult = getUserIdFromRequest(req);
 
-        if (userIdResult instanceof NextResponse) {
-            return userIdResult;
+        const userIdResult = getUserIdFromRequest(request);
+
+        // Проверка авторизации пользователя
+        if (!userIdResult.authorized) {
+            return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
         }
 
         const { userId } = userIdResult;

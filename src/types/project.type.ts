@@ -1,4 +1,5 @@
 import { UserType } from './user.type';
+import {IParticipant} from "@/models/Project";
 
 export enum ProjectStatus {
     DRAFT = 'draft',
@@ -9,9 +10,15 @@ export enum ProjectStatus {
 
 export enum ParticipantStatus {
     REGISTRATION = 'registration',
-    ONGOING = 'ongoing',
-    COMPLETED = 'completed',
     CLOSED = 'closed',
+}
+
+// Тип для заявки на участие
+export interface ParticipationRequest {
+    _id: string,
+    user: UserType;  // Пользователь, подавший заявку
+    status: 'pending' | 'approved' | 'rejected';  // Статус заявки
+    submittedAt: string;  // Дата подачи заявки
 }
 
 export interface IProject {
@@ -19,13 +26,15 @@ export interface IProject {
     title: string;
     eventDate: string;
     description: string;
-    participants: UserType[];
-    team: UserType[];
+    participants: IParticipant[];  // Участники проекта
+    team: UserType[];  // Команда проекта
     tags: string[];
-    status: ProjectStatus; // Используем enum для статуса проекта
-    participantStatus: ParticipantStatus; // Используем enum для статуса участников
+    status: ProjectStatus;  // Статус проекта
+    participantStatus: ParticipantStatus;  // Статус участников
     visibility: boolean;
-    owner: UserType; // Владелец проекта
+    owner: UserType;  // Владелец проекта
+    participationRequests: ParticipationRequest[];
 }
 
+// Опциональные типы для обновлений или частичных данных проекта
 export type IProjectOptional = Partial<IProject>;

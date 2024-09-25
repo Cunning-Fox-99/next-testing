@@ -8,8 +8,11 @@ export async function GET(request: NextRequest) {
         await connectDB();
         const userIdResult = getUserIdFromRequest(request);
 
-        if (userIdResult instanceof NextResponse) {
-            return userIdResult;
+        const userIdResult = getUserIdFromRequest(request);
+
+        // Проверка авторизации пользователя
+        if (!userIdResult.authorized) {
+            return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
         }
 
         const { userId } = userIdResult;
@@ -19,6 +22,7 @@ export async function GET(request: NextRequest) {
             $or: [
                 { owner: userId },
                 { team: userId },
+                { participants: userId }
             ]
         }).populate('owner team');
 

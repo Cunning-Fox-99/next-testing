@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { UserType } from '@/types/user.type';
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
+import {RootState} from "@/store/store";
 // import { setUser as setUserInStore } from '@/store/slices/userSlice';
 
 interface Notification {
@@ -23,16 +24,11 @@ const DashboardHeader = () => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [showNotifications, setShowNotifications] = useState(false);
 
-    const getUser = async () => {
-        const response = await fetch('/api/me');
-        const userData: UserType = await response.json();
-        setLocalUser(userData); // Используем локальное состояние
-       // dispatch(setUserInStore(userData)); // Используем Redux-действие
-    };
+    const user = useSelector((state: RootState) => state.user.user);
 
     useEffect(() => {
-        getUser();
-    }, []);
+        setLocalUser(user)
+    }, [user]);
 
     const handleLogout = async () => {
         await fetch('/api/logout', { method: 'POST' });
@@ -90,7 +86,7 @@ const DashboardHeader = () => {
                             </button>
                         </div>
                         <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
-                            <div className="flex flex-shrink-0 items-center">
+                            <Link href='/' className="flex flex-shrink-0 items-center">
                                 <Image
                                     width={50}
                                     height={50}
@@ -98,7 +94,7 @@ const DashboardHeader = () => {
                                     src="https://tailwindui.com/Image/logos/mark.svg?color=indigo&shade=500"
                                     alt="Your Company"
                                 />
-                            </div>
+                            </Link>
                             <div className="hidden sm:ml-6 sm:block">
                                 <div className="flex space-x-4">
                                     <Link

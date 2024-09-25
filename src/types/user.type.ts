@@ -1,3 +1,5 @@
+
+
 export interface UserType {
 	_id: string,
 	images: string[],
@@ -11,3 +13,5 @@ export interface UserType {
 	phone?: string,
 
 }
+
+export type IUserOptional = Partial<UserType>;
