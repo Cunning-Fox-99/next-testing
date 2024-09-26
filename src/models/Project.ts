@@ -53,6 +53,7 @@ const ProjectSchema: Schema = new Schema({
     team: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     participants: [Schema.Types.Mixed], // Используем смешанный тип, чтобы хранить объекты UserType
     participationRequests: [ParticipationRequestSchema],  // Поле для заявок
+    images: [{ type: String }]
 });
 
 // Модель будет использовать интерфейс IProject, который теперь включает Document и заявки

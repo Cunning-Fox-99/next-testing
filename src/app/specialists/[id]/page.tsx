@@ -2,48 +2,44 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { UserType } from "@/types/user.type";
+import { UserType } from "@/types/user.type"; // Предполагается, что UserType определяет структуру пользователя
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 const Page = ({ params }: { params: { id: string } }) => {
-    const [user, setUser] = useState<UserType | null>(null);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isLoading, setIsLoading] = useState(false); // Для индикации загрузки чата
-
+    const [isLoading, setIsLoading] = useState(true); // Для индикации загрузки данных пользователя
+    const [user, setUser] = useState<UserType | null>(null); // Состояние для хранения данных пользователя
     const router = useRouter();
+    const currentUser = useSelector((state: RootState) => state.user.user);
 
-    const checkAuth = async () => {
+
+    const fetchUser = async () => {
         try {
-            const res = await fetch('/api/check-token', {
-                method: 'POST',
-            });
-            const data = await res.json();
-            setIsAuthenticated(data.isValid);
-        } catch (err) {
-            console.error('Error checking token', err);
-        }
-    };
-
-    const getUser = async () => {
-        try {
-            const response = await fetch('/api/public/get-user', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: params.id }),
-            });
-
+            const response = await fetch(`/api/public/get-user/${params.id}`);
             if (response.ok) {
                 const userData = await response.json();
-                setUser(userData);
+                setUser(userData); // Устанавливаем данные пользователя в состояние
             } else {
-                throw new Error('Failed to fetch user');
+                console.error('User not found');
             }
-        } catch (e) {
-            console.log(e);
+        } catch (error) {
+            console.error('Error fetching user:', error);
+        } finally {
+            setIsLoading(false); // Завершаем индикатор загрузки
         }
     };
 
+    useEffect(() => {
+
+
+        fetchUser();
+    }, [params.id]); // Запускаем эффект при изменении params.id
+
     const createChat = async () => {
-        if (!isAuthenticated) {
+        // Предполагается, что пользователь должен быть авторизован для создания чата
+
+
+        if (!currentUser) {
             router.push('/login');
             return;
         }
@@ -69,13 +65,12 @@ const Page = ({ params }: { params: { id: string } }) => {
         }
     };
 
-
-    useEffect(() => {
-        getUser().then(() => checkAuth());
-    }, []);
+    if (isLoading) {
+        return <div className="container p-6 lg:px-8">Loading...</div>;
+    }
 
     if (!user) {
-        return <div className="container p-6 lg:px-8">Loading...</div>;
+        return <div className="container p-6 lg:px-8">User not found</div>;
     }
 
     return (

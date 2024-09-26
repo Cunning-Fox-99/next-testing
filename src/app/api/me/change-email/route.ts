@@ -12,9 +12,10 @@ export async function POST(request: NextRequest) {
 	try {
 		await connectDB();
 		const userIdResult = getUserIdFromRequest(request);
-	  
-		if (userIdResult instanceof NextResponse) {
-		  return userIdResult; 
+
+		// Проверка авторизации пользователя
+		if (!userIdResult.authorized) {
+			return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
 		}
 	  
 		const { userId } = userIdResult;

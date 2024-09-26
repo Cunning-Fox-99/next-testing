@@ -34,6 +34,7 @@ export interface IProject {
     visibility: boolean;
     owner: UserType;  // Владелец проекта
     participationRequests: ParticipationRequest[];
+    images?: string[];
 }
 
 // Опциональные типы для обновлений или частичных данных проекта

@@ -1,16 +1,16 @@
 'use client';
 import React, { useState } from 'react';
 import Link from "next/link";
-import { Team } from "@/types/team.type"; // Тип команды
+import { ITeam } from "@/types/team.type"; // Тип команды
 
 export default function TeamSearch() {
     const [query, setQuery] = useState('');
-    const [filteredTeams, setFilteredTeams] = useState<Team[]>([]);
+    const [filteredTeams, setFilteredTeams] = useState<ITeam[]>([]);
 
     const handleSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
         setQuery(e.target.value);
         try {
-            const response = await fetch(`/api/public/search-team?query=${e.target.value}`);
+            const response = await fetch(`/api/teams/search?query=${e.target.value}`);
             if (response.ok) {
                 const data = await response.json();
                 setFilteredTeams(data);

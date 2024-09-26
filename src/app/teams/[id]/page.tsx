@@ -1,10 +1,10 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Team } from '@/types/team.type'; // Предполагаем, что тип TeamType уже определен
+import { ITeam } from '@/types/team.type'; // Предполагаем, что тип TeamType уже определен
 
 export default function TeamPage({ params }: { params: { id: string } }) {
-    const [team, setTeam] = useState<Team | null>(null);
+    const [team, setTeam] = useState<ITeam | null>(null);
     const router = useRouter();
 
     const getTeam = async () => {

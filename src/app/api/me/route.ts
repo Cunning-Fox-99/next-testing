@@ -9,15 +9,16 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 export async function GET(request: NextRequest) {
 	await connectDB();
-	const userIdResult = getUserIdFromRequest(request);
+	 const userIdResult = getUserIdFromRequest(request);
 
-	if (userIdResult instanceof NextResponse) {
-	  return userIdResult; 
-	}
+        // Проверка авторизации пользователя
+        if (!userIdResult.authorized) {
+            return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
+        }
   
 	const { userId } = userIdResult;
 
-	  let user = await User.findById(userId).select('-password -_id');
+	  let user = await User.findById(userId).select('-password');
 
 	  if (!user) {
 		return new NextResponse('User not found', { status: 404 });

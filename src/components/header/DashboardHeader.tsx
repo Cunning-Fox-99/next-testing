@@ -1,18 +1,13 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { usePathname } from 'next/navigation';
-import { UserType } from '@/types/user.type';
+import {usePathname, useRouter} from 'next/navigation';
+import {UserType} from '@/types/user.type';
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "@/store/store";
-// import { setUser as setUserInStore } from '@/store/slices/userSlice';
-
-interface Notification {
-    id: string;
-    text: string;
-}
+import {INotification, NotificationType} from "@/types/notification.type";
+import {FaTimes} from 'react-icons/fa'; // Import Close icon
 
 const DashboardHeader = () => {
     const router = useRouter();
@@ -20,14 +15,14 @@ const DashboardHeader = () => {
     const dispatch = useDispatch();
 
     const [active, setActive] = useState(false);
-    const [localUser, setLocalUser] = useState<UserType | null>(null); // Переименовали
-    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [localUser, setLocalUser] = useState<UserType | null>(null);
+    const [notifications, setNotifications] = useState<INotification[]>([]);
     const [showNotifications, setShowNotifications] = useState(false);
 
     const user = useSelector((state: RootState) => state.user.user);
 
     useEffect(() => {
-        setLocalUser(user)
+        setLocalUser(user);
     }, [user]);
 
     const handleLogout = async () => {
@@ -40,11 +35,47 @@ const DashboardHeader = () => {
     };
 
     const fetchNotifications = async () => {
-        // Replace this URL with your actual API endpoint for notifications
         const response = await fetch('/api/notifications');
         if (response.ok) {
-            const data: Notification[] = await response.json();
-            setNotifications(data);
+            const data: { notifications: INotification[] } = await response.json();
+            console.log(data)
+            setNotifications(data.notifications);
+        }
+    };
+
+    const removeNotification = async (id: string) => {
+        setShowNotifications(false)
+        try {
+            const response = await fetch(`/api/notifications/${id}`, {
+                method: 'PATCH'
+            });
+
+            if (response.ok) {
+                console.log('Notification marked as read');
+                setNotifications(notifications.filter(notification => notification._id !== id));
+            } else {
+                console.error('Failed to mark notification as read');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+
+        // Optionally, send a request to server to mark notification as removed
+    };
+
+    useEffect(() => {
+        fetchNotifications();
+    }, []);
+
+    const getNotificationLink = (notification: INotification) => {
+        // Generate link based on the type of notification
+        switch (notification.type) {
+            case NotificationType.PROJECT_APPLICATION:
+                return `/dashboard/project/${notification.project}`;
+            case NotificationType.TEAM_INVITATION:
+                return `/dashboard/team`;
+            default:
+                return '#';
         }
     };
 
@@ -61,7 +92,6 @@ const DashboardHeader = () => {
                                 aria-controls="mobile-menu"
                                 aria-expanded="false"
                             >
-                                <span className="absolute -inset-0.5"></span>
                                 <span className="sr-only">Open main menu</span>
                                 <svg
                                     className="block h-6 w-6"
@@ -72,16 +102,6 @@ const DashboardHeader = () => {
                                     aria-hidden="true"
                                 >
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                                </svg>
-                                <svg
-                                    className="hidden h-6 w-6"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    strokeWidth="1.5"
-                                    stroke="currentColor"
-                                    aria-hidden="true"
-                                >
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
@@ -99,32 +119,25 @@ const DashboardHeader = () => {
                                 <div className="flex space-x-4">
                                     <Link
                                         href="/dashboard"
-                                        className={`rounded-md ${pathname === '/dashboard' ? 'bg-gray-900' : null} px-3 py-2 text-sm font-medium text-white`}
-                                        aria-current="page"
+                                        className={`rounded-md ${pathname === '/dashboard' ? 'bg-gray-900' : ''} px-3 py-2 text-sm font-medium text-white`}
                                     >
                                         Dashboard
                                     </Link>
                                     <Link
                                         href="/dashboard/team"
-                                        className={`rounded-md ${pathname === '/dashboard/team' ? 'bg-gray-900' : null} px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white`}
+                                        className={`rounded-md ${pathname.includes('team') ? 'bg-gray-900' : ''} px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white`}
                                     >
                                         Team
                                     </Link>
                                     <Link
                                         href="/dashboard/project"
-                                        className={`rounded-md ${pathname === '/dashboard/project' ? 'bg-gray-900' : null} px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white`}
+                                        className={`rounded-md ${pathname.includes('project') ? 'bg-gray-900' : ''} px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white`}
                                     >
                                         Projects
                                     </Link>
                                     <Link
-                                        href="/dashboard/orders"
-                                        className={`rounded-md ${pathname === '/dashboard/orders' ? 'bg-gray-900' : null} px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white`}
-                                    >
-                                        Orders
-                                    </Link>
-                                    <Link
                                         href="/dashboard/chats"
-                                        className={`rounded-md ${pathname === '/dashboard/chats' ? 'bg-gray-900' : null} px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white`}
+                                        className={`rounded-md ${pathname.includes('chats') ? 'bg-gray-900' : ''} px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white`}
                                     >
                                         Chats
                                     </Link>
@@ -138,7 +151,6 @@ const DashboardHeader = () => {
                                 onClick={handleNotificationsClick}
                                 className="relative rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
                             >
-                                <span className="absolute -inset-1.5"></span>
                                 <span className="sr-only">View notifications</span>
                                 <svg
                                     className="h-6 w-6"
@@ -154,11 +166,16 @@ const DashboardHeader = () => {
 
                             {/* Notifications dropdown */}
                             {showNotifications && (
-                                <div className="absolute right-1.5 top-1/2 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical">
+                                <div className="absolute right-1.5 top-1/2 z-10 mt-2 w-64 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                                     {notifications.length > 0 ? (
                                         notifications.map(notification => (
-                                            <div key={notification.id} className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                                {notification.text}
+                                            <div key={notification._id} className="flex items-center justify-between px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                <Link href={getNotificationLink(notification)} onClick={() => removeNotification(notification._id)} className="text-blue-500">
+                                                    {notification.message}
+                                                </Link>
+                                                <button onClick={() => removeNotification(notification._id)}>
+                                                    <FaTimes className="text-red-500 hover:text-red-700" />
+                                                </button>
                                             </div>
                                         ))
                                     ) : (
@@ -176,41 +193,41 @@ const DashboardHeader = () => {
                                         <button
                                             type="button"
                                             className="relative flex rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
-                                            id="user-menu-button"
-                                            aria-expanded="false"
-                                            aria-haspopup="true"
                                         >
-                                            <span className="absolute -inset-1.5"></span>
                                             <span className="sr-only">Open user menu</span>
                                             <Image
                                                 width={50}
                                                 height={50}
                                                 className="h-8 w-8 rounded-full"
-                                                src={localUser?.profileImage ? localUser.profileImage : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"} alt="" /> </button> </div> )}
+                                                src={localUser?.profileImage ? localUser.profileImage : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
+                                                alt="User avatar"
+                                            />
+                                        </button>
+                                    </div>
+                                )}
                                 {active && (
-                                    <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button">
-                                        <Link href="/dashboard/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem" id="user-menu-item-0">Your Profile</Link>
-                                        <Link href="/dashboard/settings" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem" id="user-menu-item-1">Settings</Link>
-                                        <button onClick={handleLogout} className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem" id="user-menu-item-2">Sign out</button>
+                                    <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                        <Link href="/dashboard/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            Your Profile
+                                        </Link>
+                                        <Link href="/dashboard/settings" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            Settings
+                                        </Link>
+                                        <div
+                                            onClick={handleLogout}
+                                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                        >
+                                            Sign out
+                                        </div>
                                     </div>
                                 )}
                             </div>
                         </div>
                     </div>
                 </div>
-
-                {/* Mobile menu, show/hide based on menu state */}
-                <div className="sm:hidden" id="mobile-menu">
-                    <div className="space-y-1 px-2 pb-3 pt-2">
-                        <Link href="/dashboard" className="block rounded-md bg-gray-900 px-3 py-2 text-base font-medium text-white" aria-current="page">Dashboard</Link>
-                        <Link href="/dashboard/team" className="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Team</Link>
-                        <Link href="/dashboard/project" className="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Projects</Link>
-                        <Link href="/dashboard/calendar" className="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Calendar</Link>
-                        <Link href="/dashboard/orders" className="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Orders</Link>
-                    </div>
-                </div>
             </nav>
         </>
-    ); };
+    );
+};
 
 export default DashboardHeader;

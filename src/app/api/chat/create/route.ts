@@ -9,8 +9,10 @@ export async function POST(request: NextRequest) {
 
         // Получаем userId из токена
         const userIdResult = getUserIdFromRequest(request);
-        if (userIdResult instanceof NextResponse) {
-            return userIdResult; // Если токен недействителен, вернуть ошибку
+
+        // Проверка авторизации пользователя
+        if (!userIdResult.authorized) {
+            return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
         }
 
         const { userId } = userIdResult;
@@ -34,6 +36,7 @@ export async function POST(request: NextRequest) {
         const newChat = new Chat({
             participants: [userId, recipientId],
             messages: [], // Пустой массив сообщений
+            chatWith: recipientId, // Указываем получателя
         });
 
         await newChat.save(); // Сохраняем чат в базе данных

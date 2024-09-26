@@ -7,6 +7,8 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import {FiUpload} from "react-icons/fi";
+import { FiTrash } from "react-icons/fi";
 
 const ProjectPage = ({ params }: { params: { id: string } }) => {
     const router = useRouter();
@@ -16,6 +18,7 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
     const [newStatus, setNewStatus] = useState<ProjectStatus | null>(null);
     const [participantStatus, setParticipantStatus] = useState<ParticipantStatus | null>(null);
     const [inviteeEmail, setInviteeEmail] = useState<string>('');
+    const [imageFile, setImageFile] = useState<File | null>(null);
 
     const fetchProject = async () => {
         try {
@@ -84,7 +87,7 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
         }
     };
 
-    const inviteParticipant = async () => {
+    const inviteMembers = async () => {
         try {
             const response = await fetch(`/api/projects/${params.id}/invite`, {
                 method: 'POST',
@@ -100,6 +103,81 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
             setError(err.message);
         }
     };
+
+    const removeParticipant = async (participantId: string) => {
+        try {
+            const response = await fetch(`/api/projects/${params.id}/participants/${participantId}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to remove participant');
+            }
+            alert('Participant removed successfully');
+            fetchProject(); // Обновление проекта после удаления участника
+        } catch (err: any) {
+            setError(err.message);
+        }
+    };
+
+    const uploadImage = async (file: File) => {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const imgBBResponse = await fetch(`https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB}`, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!imgBBResponse.ok) {
+            throw new Error(`Error uploading to ImgBB: ${imgBBResponse.statusText}`);
+        }
+
+        const imgBBData = await imgBBResponse.json();
+        return imgBBData.data.url; // Возвращаем URL загруженного изображения
+    };
+
+    const handleImageUpload = async () => {
+        if (!imageFile) return;
+        try {
+            const imageUrl = await uploadImage(imageFile);
+            // Сохраните URL в базе данных
+            await saveImageUrl(imageUrl); // Реализуйте эту функцию в вашем API
+            alert('Image uploaded successfully');
+            setImageFile(null); // Сбрасываем состояние
+            fetchProject()
+        } catch (error:any) {
+            setError(error.message);
+        }
+    };
+
+    const saveImageUrl = async (imageUrl: string) => {
+        // Реализуйте сохранение URL в вашем API
+        const response = await fetch(`/api/projects/${params.id}/images`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageUrl }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to save image URL');
+        }
+    };
+
+    const deleteImage = async (imageUrl: string) => {
+        const response = await fetch(`/api/projects/${params.id}/images`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageUrl }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to delete image');
+        }
+
+        alert('Image deleted successfully');
+        fetchProject(); // Обновляем проект после удаления изображения
+    };
+
 
     useEffect(() => {
         fetchProject();
@@ -186,11 +264,52 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
                 <p className="text-gray-600">{project.description}</p>
             </div>
 
+            {/* Загрузка изображения */}
+            <div className="bg-white p-4 rounded-lg shadow-md">
+                <h3 className="text-2xl font-semibold text-gray-700 mb-4">Upload Image</h3>
+                <div className="flex items-center border-2 border-dashed border-gray-300 p-4 rounded-lg">
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                        className="hidden"
+                        id="file-upload"
+                    />
+                    <label htmlFor="file-upload" className="cursor-pointer flex items-center space-x-2">
+                        <FiUpload className="w-6 h-6 text-blue-500"/>
+                        <span className="text-gray-600">Choose an image</span>
+                    </label>
+                    {imageFile && (
+                        <span className="ml-auto text-gray-700">{imageFile.name}</span>
+                    )}
+                </div>
+                <button
+                    onClick={handleImageUpload}
+                    className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
+                >
+                    Upload
+                </button>
+            </div>
+
+            {project.images && <Swiper className="bg-white p-4 rounded-lg shadow-md" spaceBetween={10} slidesPerView={3}>
+                {project.images.map((imageUrl) => (
+                    <SwiperSlide key={imageUrl}>
+                        <img src={imageUrl} alt="Project Image" className="w-full h-auto rounded-lg" />
+                        <button
+                            onClick={() => deleteImage(imageUrl)}
+                            className="absolute top-2 right-2 text-red-500 hover:text-red-600"
+                        >
+                            <FiTrash />
+                        </button>
+                    </SwiperSlide>
+                ))}
+            </Swiper>}
+
             {/* Team Slider */}
             <div className="bg-gray-100 p-4 rounded-lg shadow-md">
                 <h3 className="text-2xl font-semibold text-gray-700 mb-4">Team Members</h3>
                 {project.team?.length ? (
-                    <Swiper spaceBetween={10} slidesPerView={3} navigation pagination={{ clickable: true }}>
+                    <Swiper spaceBetween={10} slidesPerView={3} navigation pagination={{clickable: true}}>
                         {project.team.map((member, idx) => (
                             <SwiperSlide key={idx}>
                                 <div className="bg-white p-4 rounded-lg shadow-md text-center">
@@ -207,6 +326,24 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
                 ) : (
                     <p className="text-gray-500">No team members yet.</p>
                 )}
+            </div>
+
+            {/* Invite Members */}
+            <div className="bg-white p-4 rounded-lg shadow-md">
+                <h3 className="text-2xl font-semibold text-gray-700">Invite Members</h3>
+                <input
+                    type="email"
+                    value={inviteeEmail}
+                    onChange={(e) => setInviteeEmail(e.target.value)}
+                    placeholder="Enter email to invite"
+                    className="p-2 border rounded w-full"
+                />
+                <button
+                    onClick={inviteMembers}
+                    className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                    Send Invite
+                </button>
             </div>
 
             {/* Participation Requests */}
@@ -241,24 +378,6 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
                 )}
             </div>
 
-            {/* Invite Participant */}
-            <div className="bg-white p-4 rounded-lg shadow-md">
-                <h3 className="text-2xl font-semibold text-gray-700">Invite Participants</h3>
-                <input
-                    type="email"
-                    value={inviteeEmail}
-                    onChange={(e) => setInviteeEmail(e.target.value)}
-                    placeholder="Enter email to invite"
-                    className="p-2 border rounded w-full"
-                />
-                <button
-                    onClick={inviteParticipant}
-                    className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                >
-                    Send Invite
-                </button>
-            </div>
-
             {/* Participants Section */}
             <div className="bg-white p-4 rounded-lg shadow-md">
                 <h3 className="text-2xl font-semibold text-gray-700">Participants</h3>
@@ -275,6 +394,12 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
                                     <p className="font-semibold text-gray-700">{participant.username}</p>
                                     <p className="text-gray-500">{participant.profession}</p>
                                 </div>
+                                <button
+                                    onClick={() => removeParticipant(participant._id)}
+                                    className="ml-auto px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                                >
+                                    Remove
+                                </button>
                             </li>
                         ))}
                     </ul>

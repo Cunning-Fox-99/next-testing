@@ -9,7 +9,8 @@ export async function GET(request: NextRequest) {
         const query = new URL(request.url).searchParams.get('query');
 
         const teams = await Team.find({
-            name: { $regex: query, $options: 'i' }
+            name: { $regex: query, $options: 'i' },
+            isSearchingOpen: true
         }).populate('owner').populate('members').exec();
 
         return NextResponse.json(teams);

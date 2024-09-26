@@ -60,7 +60,8 @@ const TeamsPage = () => {
             if (!response.ok) throw new Error('Не удалось создать команду');
 
             const createdTeam = await response.json();
-            router.push(`/dashboard/team/${createdTeam._id}`);
+            console.log(createdTeam)
+            router.push(`/dashboard/team/${createdTeam.team._id}`);
         } catch (error) {
             console.error('Ошибка при создании команды:', error);
         } finally {

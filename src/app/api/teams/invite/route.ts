@@ -1,9 +1,11 @@
 import connectDB from "@/config/database";
 import Team from "@/models/Team";
 import User from "@/models/User";
+import Notification from "@/models/Notification";
 import Invitation from "@/models/Invitation";
 import { getUserIdFromRequest } from "@/utils/authUtils";
 import { NextRequest, NextResponse } from "next/server";
+import {NotificationType} from "@/types/notification.type";
 
 export async function POST(request: NextRequest) {
     try {
@@ -49,6 +51,18 @@ export async function POST(request: NextRequest) {
         });
 
         await invitation.save();
+
+        // Создаем уведомление для приглашенного пользователя
+        const notificationMessage = `You have been invited to join the team "${team.name}"`;
+        const newNotification = new Notification({
+            recipient: user._id,
+            message: notificationMessage,
+            type: NotificationType.TEAM_INVITATION, // Убедитесь, что у вас есть этот тип
+            team: team._id,
+            createdAt: new Date()
+        });
+
+        await newNotification.save();
 
         // Здесь можно отправить уведомление пользователю, например, по email
 

@@ -22,7 +22,10 @@ export async function GET(request: NextRequest) {
         }).populate('owner').populate('members').exec();
 
         // Получаем приглашения пользователя
-        const invitations = await Invitation.find({ userId }).populate('teamId').exec();
+        const invitations = await Invitation.find({
+            userId,
+            status: 'pending'
+        }).populate('teamId').exec();
 
         return NextResponse.json({ teams, invitations });
     } catch (error) {

@@ -9,8 +9,10 @@ export async function GET(request: NextRequest) {
 
         // Получаем userId из токена
         const userIdResult = getUserIdFromRequest(request);
-        if (userIdResult instanceof NextResponse) {
-            return userIdResult; // Вернуть ошибку, если токен недействителен
+
+        // Проверка авторизации пользователя
+        if (!userIdResult.authorized) {
+            return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
         }
 
         const { userId } = userIdResult;
@@ -18,10 +20,10 @@ export async function GET(request: NextRequest) {
         // Находим все чаты, где пользователь является участником
         const userChats = await Chat.find({
             participants: userId
-        }).populate('participants', 'username profileImage email'); // Добавляем данные участников
+        }).populate('participants chatWith', 'username profileImage email'); // Добавляем данные участников
 
         if (!userChats || userChats.length === 0) {
-            return NextResponse.json({ message: "No chats found" }, { status: 404 });
+            return NextResponse.json({ chats: [] }, { status: 200 });
         }
 
         // Возвращаем чаты

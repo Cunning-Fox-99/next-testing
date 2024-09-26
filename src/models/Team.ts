@@ -8,7 +8,8 @@ const TeamSchema = new Schema({
     members: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     portfolio: [{ type: String }], // Ссылки на изображения
     workHours: { type: String },
-    workDays: [{ type: String }] // Например, ['Monday', 'Tuesday', 'Wednesday']
+    workDays: [{ type: String }], // Например, ['Monday', 'Tuesday', 'Wednesday']
+    isSearchingOpen: { type: Boolean, default: false },
 }, { timestamps: true });
 
 const Team = models.Team || model('Team', TeamSchema);

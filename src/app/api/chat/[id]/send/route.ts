@@ -35,14 +35,14 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
         // Проверяем, что пользователь является участником чата
         const isParticipant = chat.participants.some((participant: any) =>
-            participant._id.toString() === userId!.toString()
+            participant._id.toString() === userId
         );
 
         if (!isParticipant) {
             return NextResponse.json({ error: "User is not a participant of this chat" }, { status: 403 });
         }
 
-        // Обрабатываем отправку сообщения
+        // Извлекаем тело запроса
         const body = await request.json();
         const { message } = body; // Извлекаем сообщение
 
@@ -53,18 +53,19 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         // Создаем новое сообщение с указанием отправителя
         const newMessage = {
             sender: userId, // Указываем отправителя
-            content: message,
+            content: message.trim(), // Убедитесь, что содержимое не пустое
             timestamp: new Date(),
             readBy: [userId], // Добавляем себя в массив прочитавших
         };
 
         // Добавляем сообщение в чат
         chat.messages.push(newMessage);
+        console.log(chat)
 
         // Обновляем поле notReadedMessages для всех участников, кроме отправителя
         chat.participants.forEach((participant: any) => {
             const participantId = participant._id.toString();
-            if (participantId !== userId!.toString()) {
+            if (participantId !== userId) {
                 chat.notReadedMessages.set(
                     participantId,
                     (chat.notReadedMessages.get(participantId) || 0) + 1
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
         return NextResponse.json({ chat }, { status: 200 });
     } catch (error) {
-        console.error("Error sending message:", error);
+        // console.error("Error sending message:", error);
         return NextResponse.json({ error: "Failed to send message" }, { status: 500 });
     }
 }

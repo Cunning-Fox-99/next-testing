@@ -1,9 +1,11 @@
 // pages/api/projects/[id]/apply.ts
 import connectDB from "@/config/database";
 import Project from "@/models/Project";
+import Notification from "@/models/Notification";
 import { getUserIdFromRequest } from "@/utils/authUtils";
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
+import {NotificationType} from "@/types/notification.type";
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
     try {
@@ -61,6 +63,17 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
         project.participationRequests.push(newParticipationRequest);
         await project.save();
+
+        // Создание уведомления для владельца проекта
+        const newNotification = new Notification({
+            recipient: project.owner._id,
+            message: `User ${name} has applied for your project "${project.title}"`,
+            type: NotificationType.PROJECT_APPLICATION,
+            project: project._id,
+            createdAt: new Date()
+        });
+
+        await newNotification.save();
 
         return NextResponse.json({ message: 'Application submitted successfully' });
     } catch (error) {

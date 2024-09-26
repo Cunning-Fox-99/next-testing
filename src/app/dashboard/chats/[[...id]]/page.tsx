@@ -1,13 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { AiOutlinePlus } from 'react-icons/ai';
-import { ChatI } from "@/types/chat.type";
+import {useState, useEffect} from 'react';
+import {useRouter} from 'next/navigation';
+import {AiOutlinePlus} from 'react-icons/ai';
+import {ChatI} from "@/types/chat.type";
+import {useSelector} from "react-redux";
+import {RootState} from "@/store/store";
+import chat from "@/models/Chat";
 
-const ChatsDetailPage = ({ params }: { params: { id: string } }) => {
+const ChatsDetailPage = ({params}: { params: { id: string } }) => {
     const router = useRouter();
-    const { id } = params;
+
+    const {id} = params;
     const [chatList, setChatList] = useState<ChatI[]>([]);
     const [activeChatId, setActiveChatId] = useState<string | null>(id || null);
     const [newMessage, setNewMessage] = useState('');
@@ -15,26 +19,7 @@ const ChatsDetailPage = ({ params }: { params: { id: string } }) => {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-    // Получение данных пользователя
-    const getUser = async () => {
-        try {
-            const res = await fetch('/api/me', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            if (!res.ok) {
-                throw new Error('Failed to fetch user data');
-            }
-
-            const userData = await res.json();
-            setCurrentUserId(userData._id); // Предполагается, что ID пользователя находится в поле _id
-        } catch (error) {
-            console.error('Error fetching user data:', error);
-        }
-    };
+    const user = useSelector((state: RootState) => state.user.user)
 
     const fetchChats = async () => {
         try {
@@ -50,12 +35,13 @@ const ChatsDetailPage = ({ params }: { params: { id: string } }) => {
             }
 
             const data = await res.json();
+            console.log(data)
             setChatList(data.chats);
 
-            if (!activeChatId && data.chats.length > 0) {
-                setActiveChatId(data.chats[0]._id);
-                router.push(`/dashboard/chats/${data.chats[0]._id}`);
-            }
+            // if (!activeChatId && data.chats.length > 0) {
+            //     setActiveChatId(data.chats[0]._id);
+            //     router.push(`/dashboard/chats/${data.chats[0]._id}`);
+            // }
         } catch (error) {
             console.error('Error fetching chats:', error);
             setErrorMessage('Failed to load chats');
@@ -65,9 +51,13 @@ const ChatsDetailPage = ({ params }: { params: { id: string } }) => {
     };
 
     useEffect(() => {
-        getUser(); // Получаем ID пользователя при загрузке
-        fetchChats();
-    }, [activeChatId, router]);
+        if (user) {
+            console.log(user)
+            setCurrentUserId(user._id)
+            fetchChats();
+        }
+
+    }, [activeChatId, router, user]);
 
     const handleChatSelect = (chatId: string) => {
         setActiveChatId(chatId);
@@ -75,15 +65,19 @@ const ChatsDetailPage = ({ params }: { params: { id: string } }) => {
     };
 
     const handleSendMessage = async () => {
-        if (newMessage.trim() && currentUserId) {
+        console.log(newMessage)
+        console.log(currentUserId)
+        if (newMessage && currentUserId) {
             try {
                 const res = await fetch(`/api/chat/${activeChatId}/send`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ message: newMessage, sender: currentUserId }),
+                    body: JSON.stringify({message: newMessage}),
                 });
+
+                console.log(res)
 
                 if (!res.ok) {
                     throw new Error('Failed to send message');
@@ -103,6 +97,12 @@ const ChatsDetailPage = ({ params }: { params: { id: string } }) => {
             }
         }
     };
+
+    useEffect(() => {
+        if (id) {
+            handleChatSelect(id[0])
+        }
+    }, [id])
 
     if (isLoading) {
         return <div>Loading chats...</div>;
@@ -127,7 +127,7 @@ const ChatsDetailPage = ({ params }: { params: { id: string } }) => {
                             onClick={() => handleChatSelect(chat._id)}
                         >
                             <div className="text-sm font-medium">
-                                {chat.participants[0].username || chat.participants[0].email}
+                                {chat.chatWith.username || chat.chatWith.email}
                             </div>
                             <div className="text-xs text-gray-500">{chat.participants[0].email}</div>
                             {/* Отображаем количество непрочитанных сообщений */}
@@ -143,9 +143,9 @@ const ChatsDetailPage = ({ params }: { params: { id: string } }) => {
 
             {/* Окно активного чата справа */}
             <div className="flex flex-col w-2/3">
-                <div className="flex-grow overflow-y-auto p-4 space-y-2" style={{ maxHeight: 'calc(100vh - 80px)' }}>
+                <div className="flex-grow overflow-y-auto p-4 space-y-2" style={{maxHeight: 'calc(100vh - 80px)'}}>
                     {!activeChat ? (
-                        <div className="text-center text-gray-500">Чат не выбран</div>
+                        <div className="text-center text-gray-500">Chat not selected</div>
                     ) : (
                         activeChat.messages.map((msg, idx) => (
                             <div
@@ -153,10 +153,10 @@ const ChatsDetailPage = ({ params }: { params: { id: string } }) => {
                                 className={`p-2 rounded-md ${msg.sender === currentUserId ? 'bg-green-100' : 'bg-blue-100'}`}
                             >
                                 <div className="text-xs text-gray-500">
-                                    {msg.sender === currentUserId ? 'You' : 'Other'}
+                                    {msg.sender === currentUserId ? 'You' : activeChat.chatWith?.username || activeChat.chatWith.email}
                                 </div>
                                 {msg.type === 'image' ? (
-                                    <img src={msg.content} alt="Message Image" className="max-w-full h-auto" />
+                                    <img src={msg.content} alt="Message Image" className="max-w-full h-auto"/>
                                 ) : (
                                     msg.content
                                 )}
@@ -167,7 +167,8 @@ const ChatsDetailPage = ({ params }: { params: { id: string } }) => {
 
                 {/* Зона ввода сообщений */}
                 {activeChat && (
-                    <div className="border-t-2 border-gray-300 p-4 flex items-center justify-between fixed bottom-0 w-2/3 bg-white">
+                    <div
+                        className="border-t-2 border-gray-300 p-4 flex items-center justify-between fixed bottom-0 w-2/3 bg-white">
                         <input
                             type="text"
                             className="flex-grow p-2 border rounded-md focus:outline-none"

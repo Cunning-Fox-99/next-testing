@@ -15,6 +15,7 @@ export default function UserSearch() {
             if (response.ok) {
                 const data = await response.json();
                 setFilteredUsers(data);
+                console.log(data)
             }
         } catch (error) {
             console.error('Ошибка поиска команд:', error);
@@ -66,7 +67,7 @@ export default function UserSearch() {
                                 />
                             </div>
                             <div className="mt-4 text-center">
-                                <Link href={`/user/${user._id}`}
+                                <Link href={`/specialists/${user._id}`}
                                       className="block text-2xl font-semibold leading-7 text-gray-900 hover:text-indigo-600">
                                     {user.username}
                                 </Link>
@@ -74,7 +75,7 @@ export default function UserSearch() {
                                 <p className="mt-1 text-sm text-gray-400">{user.email}</p>
                             </div>
                             <div className="mt-4">
-                                <Link href={`/user/${user._id}`}
+                                <Link href={`/specialists/${user._id}`}
                                       className="text-indigo-600 text-sm font-semibold hover:underline">
                                     View Profile &rarr;
                                 </Link>

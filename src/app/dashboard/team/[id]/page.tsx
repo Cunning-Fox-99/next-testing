@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import Modal from '@/components/Modal';
-import { Team } from '@/types/team.type';
+import { ITeam } from '@/types/team.type';
+import {useRouter} from "next/navigation";
 
 interface newData {
     name: string;
@@ -15,10 +16,11 @@ interface newData {
 const TeamPage = ({ params }: { params: { id: string } }) => {
     const [isOwner, setIsOwner] = useState(true); // Заменить на реальную логику
     const [selectedDays, setSelectedDays] = useState<string[]>([]);
-    const [team, setTeam] = useState<Team | null>(null);
+    const [team, setTeam] = useState<ITeam | null>(null);
     const [isEditTeamModalOpen, setIsEditTeamModalOpen] = useState(false);
     const [isInviteMemberModalOpen, setIsInviteMemberModalOpen] = useState(false);
     const [emailToInvite, setEmailToInvite] = useState('');
+    const [isSearchingOpen, setIsSearchingOpen] = useState<boolean>(false);
     const [newTeamData, setNewTeamData] = useState<newData>({
         name: '',
         workHours: '',
@@ -29,20 +31,23 @@ const TeamPage = ({ params }: { params: { id: string } }) => {
     const [error, setError] = useState<string | null>(null);
 
     const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const router = useRouter();
 
     const fetchTeam = async () => {
         try {
             const response = await fetch(`/api/teams/${params.id}`);
             if (!response.ok) throw new Error('Failed to fetch team data');
-            const data: Team = await response.json();
+            const data: ITeam = await response.json();
+            console.log(data)
             setTeam(data);
             setSelectedDays(data.workDays || []);
             setNewTeamData({
                 name: data.name,
-                workHours: data.workHours,
+                workHours: data.workHours ?? '',
                 description: data.description,
                 workDays: data.workDays || [],
             });
+            setIsSearchingOpen(data.isSearchingOpen || false)
             setIsOwner(data.isOwner || false);
         } catch (error) {
             console.error('Error fetching team:', error);
@@ -104,6 +109,19 @@ const TeamPage = ({ params }: { params: { id: string } }) => {
         }
     };
 
+    const deleteTeam = async () => {
+        try {
+            const response = await fetch(`/api/teams/${params.id}`, {
+                method: 'DELETE'
+            });
+            if (!response.ok) throw new Error('Failed to fetch team data');
+            router.push('/dashboard/team')
+
+        } catch (e) {
+            console.log(e)
+        }
+    }
+
     const handleInviteMember = async () => {
         try {
             const response = await fetch('/api/teams/invite', {
@@ -159,6 +177,20 @@ const TeamPage = ({ params }: { params: { id: string } }) => {
         }
     };
 
+    const handleToggleSearching = async () => {
+        try {
+            const response = await fetch(`/api/teams/${params.id}/toggle-search-status`, { // предполагается, что у вас есть API для изменения статуса
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isSearchingOpen: !isSearchingOpen }),
+            });
+            if (!response.ok) throw new Error('Failed to update team status');
+            setIsSearchingOpen(!isSearchingOpen); // Переключите статус
+        } catch (error) {
+            console.error('Error toggling searching status:', error);
+        }
+    };
+
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
 
@@ -167,6 +199,14 @@ const TeamPage = ({ params }: { params: { id: string } }) => {
             {team ? (
                 <>
                     <h1 className="text-3xl font-bold mb-6">{team.name || 'Team Name'}</h1>
+
+                    {isOwner && (
+                        <button
+                            className={`px-4 py-2 rounded-md ${isSearchingOpen ? 'bg-green-500' : 'bg-red-500'} text-white`}
+                            onClick={handleToggleSearching}
+                        >
+                            {isSearchingOpen ? 'Open for search' : 'Closed for search'}
+                        </button>)}
 
                     {/* Gallery */}
                     <div className="mb-8">
@@ -277,7 +317,7 @@ const TeamPage = ({ params }: { params: { id: string } }) => {
                         <div className="flex space-x-4">
                             <button
                                 className="px-4 py-2 bg-red-500 text-white rounded-md"
-                                // Add logic to delete team
+                                onClick={deleteTeam}
                             >
                                 Delete Team
                             </button>

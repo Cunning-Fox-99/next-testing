@@ -1,8 +1,13 @@
 export interface ChatI {
     _id: string;
+    chatWith: {
+        _id: string,
+        email: string,
+        username?: string
+    },
     participants: {
         _id: string; // Добавлено для идентификации пользователя
-        username: string;
+        username?: string;
         email: string;
     }[];
     messages: {

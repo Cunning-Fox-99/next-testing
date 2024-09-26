@@ -2,7 +2,7 @@ import mongoose, { Schema, model, models } from 'mongoose';
 
 const MessageSchema = new Schema({
     sender: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Отправитель сообщения
-    content: { type: String },
+    content: { type: String, required: true }, // Обязательно для заполнения
     timestamp: { type: Date, default: Date.now },
     readBy: [{ type: Schema.Types.ObjectId, ref: 'User' }], // Пользователи, которые прочитали сообщение
 });
@@ -16,6 +16,7 @@ const ChatSchema = new Schema(
             of: Number,
             default: {},
         },
+        chatWith: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // ID пользователя, с которым ведется чат
     },
     { timestamps: true }
 );

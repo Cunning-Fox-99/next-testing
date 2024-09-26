@@ -1,36 +1,27 @@
 import connectDB from '@/config/database';
-import cookie from 'cookie';
-import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
+import {NextRequest, NextResponse} from 'next/server';
 import User from '@/models/User';
-import { getUserIdFromRequest } from '@/utils/authUtils';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+import {getUserIdFromRequest} from '@/utils/authUtils';
 
 interface RequestBody {
-	link: string;
-  }
+    link: string;
+}
 
 export async function POST(request: NextRequest) {
-	await connectDB();
-	const userIdResult = getUserIdFromRequest(request);
+    await connectDB();
+    const userIdResult = getUserIdFromRequest(request);
 
-	if (userIdResult instanceof NextResponse) {
-	  return userIdResult; 
-	}
-  
-	const { userId } = userIdResult;
+    // Проверка авторизации пользователя
+    if (!userIdResult.authorized) {
+        return NextResponse.json({message: 'Unauthorized'}, {status: 403});
+    }
 
-	  const body: RequestBody = await request.json();
-	  const { link } = body;
+    const {userId} = userIdResult;
 
-	  let user = await User.findByIdAndUpdate(userId, {profileImage: link})
+    const body: RequestBody = await request.json();
+    const {link} = body;
 
-	//   if (!user) {
-	// 	return new NextResponse('User not found', { status: 404 });
-	//   }
+    await User.findByIdAndUpdate(userId, {profileImage: link})
 
-	//   user.profileImage = link
-	//   await user.save();
-	  return new NextResponse('Profile image updated', { status: 200 });
+    return new NextResponse('Profile image updated', {status: 200});
 }

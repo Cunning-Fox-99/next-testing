@@ -2,20 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/config/database";
 import User from '@/models/User';
 
-// Это запрос через POST (если хотите передавать userId в теле запроса)
-export async function POST(request: NextRequest) {
+// Это запрос через GET с id в параметрах
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
     try {
         await connectDB();
 
-        const body = await request.json();
-        const { userId } = body;
+        const { id } = params;
 
-        if (!userId) {
+        if (!id) {
             return NextResponse.json({ message: 'User id not found' }, { status: 400 });
         }
 
-        const user = await User.findById(userId).lean(); // lean() для возврата простого объекта
-        console.log(user);
+        const user = await User.findById(id).lean(); // lean() для возврата простого объекта
 
         if (!user) {
             return NextResponse.json({ message: 'User not found' }, { status: 404 });
