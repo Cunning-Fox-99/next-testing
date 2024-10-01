@@ -1,6 +1,7 @@
 export interface ChatI {
     _id: string;
     chatWith: {
+        profileImage: string;
         _id: string,
         email: string,
         username?: string

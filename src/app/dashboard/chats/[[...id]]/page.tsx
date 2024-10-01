@@ -7,6 +7,7 @@ import {ChatI} from "@/types/chat.type";
 import {useSelector} from "react-redux";
 import {RootState} from "@/store/store";
 import chat from "@/models/Chat";
+import Image from 'next/image'
 
 const ChatsDetailPage = ({params}: { params: { id: string } }) => {
     const router = useRouter();
@@ -123,13 +124,14 @@ const ChatsDetailPage = ({params}: { params: { id: string } }) => {
                     {chatList.map((chat) => (
                         <div
                             key={chat._id}
-                            className={`p-2 rounded-md cursor-pointer ${activeChatId === chat._id ? 'bg-blue-100' : 'bg-gray-100'} hover:bg-blue-50`}
+                            className={`flex items-center p-2 rounded-md cursor-pointer ${activeChatId === chat._id ? 'bg-blue-100' : 'bg-gray-100'} hover:bg-blue-50`}
                             onClick={() => handleChatSelect(chat._id)}
                         >
+                            <Image width={50} height={50} src={chat.chatWith?.profileImage || '/default-image.jpg'} className="rounded-full mr-3" alt={'Profile image'}/>
                             <div className="text-sm font-medium">
                                 {chat.chatWith.username || chat.chatWith.email}
                             </div>
-                            <div className="text-xs text-gray-500">{chat.participants[0].email}</div>
+                            {/*<div className="text-xs text-gray-500">{chat.participants[0].email}</div>*/}
                             {/* Отображаем количество непрочитанных сообщений */}
                             {chat.notReadedMessages && chat.notReadedMessages[currentUserId!] > 0 && (
                                 <span className="text-xs text-red-500">

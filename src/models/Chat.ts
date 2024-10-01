@@ -15,8 +15,7 @@ const ChatSchema = new Schema(
             type: Map,
             of: Number,
             default: {},
-        },
-        chatWith: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // ID пользователя, с которым ведется чат
+        }
     },
     { timestamps: true }
 );

@@ -1,6 +1,7 @@
 // app/api/teams/[id]/route.ts
 import connectDB from "@/config/database";
 import Team from "@/models/Team";
+import Invitation from "@/models/Invitation";
 import { getUserIdFromRequest } from "@/utils/authUtils";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -54,6 +55,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
         // Удаляем команду
         await Team.deleteOne({ _id: params.id });
+
+        // Удаляем приглашения
+        await Invitation.deleteMany({ teamId: params.id });
 
         return NextResponse.json({ message: 'Team deleted successfully' }, { status: 200 });
     } catch (error) {
