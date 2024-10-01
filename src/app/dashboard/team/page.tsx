@@ -144,7 +144,7 @@ const TeamsPage = () => {
                         {invitations.map((invite) => (
                             <li key={invite._id} className="p-4 border border-gray-200 rounded-md">
                                 <div className="flex justify-between items-center">
-                                    <span>{invite.teamId.name}</span>
+                                    <span>{invite.teamId?.name}</span>
                                     <div>
                                         <button
                                             onClick={() => handleInviteResponse(invite._id, 'accept')}
