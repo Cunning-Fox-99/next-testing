@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
         // Если чата нет, создаём новый
         const newChat = new Chat({
             participants: [userId, recipientId],
-            messages: [], // Пустой массив сообщений
+            messages: [],
         });
 
         await newChat.save(); // Сохраняем чат в базе данных

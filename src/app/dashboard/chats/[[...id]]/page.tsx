@@ -1,26 +1,29 @@
 'use client';
 
-import {useState, useEffect} from 'react';
-import {useRouter} from 'next/navigation';
-import {AiOutlinePlus} from 'react-icons/ai';
-import {ChatI} from "@/types/chat.type";
-import {useSelector} from "react-redux";
-import {RootState} from "@/store/store";
-import chat from "@/models/Chat";
-import Image from 'next/image'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { AiOutlinePlus } from 'react-icons/ai';
+import { ChatI } from "@/types/chat.type";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
+import useImageUploader from '@/hooks/useImageUploader'; // Подключаем хук для загрузки изображений
+import Image from 'next/image';
 
-const ChatsDetailPage = ({params}: { params: { id: string } }) => {
+const ChatsDetailPage = ({ params }: { params: { id: string } }) => {
     const router = useRouter();
+    const { id } = params;
 
-    const {id} = params;
     const [chatList, setChatList] = useState<ChatI[]>([]);
     const [activeChatId, setActiveChatId] = useState<string | null>(id || null);
     const [newMessage, setNewMessage] = useState('');
+    const [selectedImage, setSelectedImage] = useState<File | null>(null); // Для хранения выбранного изображения
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-    const user = useSelector((state: RootState) => state.user.user)
+    const { uploadImage, uploading, error } = useImageUploader(); // Используем хук для загрузки изображения
+
+    const user = useSelector((state: RootState) => state.user.user);
 
     const fetchChats = async () => {
         try {
@@ -36,13 +39,7 @@ const ChatsDetailPage = ({params}: { params: { id: string } }) => {
             }
 
             const data = await res.json();
-            console.log(data)
             setChatList(data.chats);
-
-            // if (!activeChatId && data.chats.length > 0) {
-            //     setActiveChatId(data.chats[0]._id);
-            //     router.push(`/dashboard/chats/${data.chats[0]._id}`);
-            // }
         } catch (error) {
             console.error('Error fetching chats:', error);
             setErrorMessage('Failed to load chats');
@@ -53,12 +50,10 @@ const ChatsDetailPage = ({params}: { params: { id: string } }) => {
 
     useEffect(() => {
         if (user) {
-            console.log(user)
-            setCurrentUserId(user._id)
+            setCurrentUserId(user._id);
             fetchChats();
         }
-
-    }, [activeChatId, router, user]);
+    }, [user]);
 
     const handleChatSelect = (chatId: string) => {
         setActiveChatId(chatId);
@@ -66,32 +61,41 @@ const ChatsDetailPage = ({params}: { params: { id: string } }) => {
     };
 
     const handleSendMessage = async () => {
-        console.log(newMessage)
-        console.log(currentUserId)
-        if (newMessage && currentUserId) {
+        let messageContent = newMessage;
+        let messageType = 'text';
+
+        if (selectedImage) {
+            // Загружаем изображение
+            const uploadedImageUrl = await uploadImage(selectedImage);
+            if (uploadedImageUrl) {
+                messageContent = uploadedImageUrl; // Если изображение успешно загружено, сообщение — это ссылка на изображение
+                messageType = 'image';
+            }
+        }
+
+        if (messageContent && currentUserId) {
             try {
                 const res = await fetch(`/api/chat/${activeChatId}/send`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({message: newMessage}),
+                    body: JSON.stringify({ message: messageContent, type: messageType }),
                 });
-
-                console.log(res)
 
                 if (!res.ok) {
                     throw new Error('Failed to send message');
                 }
 
                 const data = await res.json();
-                // Обновить список чатов с новым сообщением
                 setChatList((prevChats) =>
                     prevChats.map((chat) =>
                         chat._id === activeChatId ? data.chat : chat
                     )
                 );
+
                 setNewMessage('');
+                setSelectedImage(null); // Очищаем выбранное изображение после отправки
             } catch (error) {
                 console.error('Error sending message:', error);
                 setErrorMessage('Failed to send message');
@@ -99,11 +103,17 @@ const ChatsDetailPage = ({params}: { params: { id: string } }) => {
         }
     };
 
+    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files && event.target.files.length > 0) {
+            setSelectedImage(event.target.files[0]);
+        }
+    };
+
     useEffect(() => {
         if (id) {
-            handleChatSelect(id[0])
+            handleChatSelect(id[0]);
         }
-    }, [id])
+    }, [id]);
 
     if (isLoading) {
         return <div>Loading chats...</div>;
@@ -127,17 +137,13 @@ const ChatsDetailPage = ({params}: { params: { id: string } }) => {
                             className={`flex items-center p-2 rounded-md cursor-pointer ${activeChatId === chat._id ? 'bg-blue-100' : 'bg-gray-100'} hover:bg-blue-50`}
                             onClick={() => handleChatSelect(chat._id)}
                         >
-                            <Image width={50} height={50} src={chat.chatWith?.profileImage || '/default-image.jpg'} className="rounded-full mr-3" alt={'Profile image'}/>
-                            <div className="text-sm font-medium">
-                                {chat.chatWith.username || chat.chatWith.email}
+                            <Image width={50} height={50} src={chat.chatWith?.profileImage || '/default-image.jpg'} className="rounded-full mr-3" alt={'Profile image'} />
+                            <div className="flex flex-col">
+                                <div className="text-sm font-medium">
+                                    {chat.chatWith.username || chat.chatWith.email}
+                                </div>
+                                <div className="text-s text-gray-500">{chat.messages.at(-1)?.content}</div>
                             </div>
-                            {/*<div className="text-xs text-gray-500">{chat.participants[0].email}</div>*/}
-                            {/* Отображаем количество непрочитанных сообщений */}
-                            {chat.notReadedMessages && chat.notReadedMessages[currentUserId!] > 0 && (
-                                <span className="text-xs text-red-500">
-                                    {chat.notReadedMessages[currentUserId!]} unread messages
-                                </span>
-                            )}
                         </div>
                     ))}
                 </div>
@@ -145,20 +151,20 @@ const ChatsDetailPage = ({params}: { params: { id: string } }) => {
 
             {/* Окно активного чата справа */}
             <div className="flex flex-col w-2/3">
-                <div className="flex-grow overflow-y-auto p-4 space-y-2" style={{maxHeight: 'calc(100vh - 80px)'}}>
+                <div className="flex-grow overflow-y-auto p-4 space-y-2" style={{ maxHeight: 'calc(100vh - 80px)' }}>
                     {!activeChat ? (
                         <div className="text-center text-gray-500">Chat not selected</div>
                     ) : (
                         activeChat.messages.map((msg, idx) => (
                             <div
                                 key={idx}
-                                className={`p-2 rounded-md ${msg.sender === currentUserId ? 'bg-green-100' : 'bg-blue-100'}`}
+                                className={`flex w-fit flex-col p-2 rounded-md ${msg.sender === currentUserId ? 'bg-green-100 items-end ml-auto' : 'bg-blue-100'}`}
                             >
                                 <div className="text-xs text-gray-500">
                                     {msg.sender === currentUserId ? 'You' : activeChat.chatWith?.username || activeChat.chatWith.email}
                                 </div>
                                 {msg.type === 'image' ? (
-                                    <img src={msg.content} alt="Message Image" className="max-w-full h-auto"/>
+                                    <img src={msg.content} alt="Message Image" className="max-w-full h-auto" />
                                 ) : (
                                     msg.content
                                 )}
@@ -169,21 +175,27 @@ const ChatsDetailPage = ({params}: { params: { id: string } }) => {
 
                 {/* Зона ввода сообщений */}
                 {activeChat && (
-                    <div
-                        className="border-t-2 border-gray-300 p-4 flex items-center justify-between fixed bottom-0 w-2/3 bg-white">
-                        <input
-                            type="text"
+                    <div className="border-t-2 border-gray-300 p-4 flex items-center justify-between fixed bottom-0 w-2/3 bg-white">
+                       <div className="flex flex-col w-full">
+                        <textarea
                             className="flex-grow p-2 border rounded-md focus:outline-none"
                             placeholder="Type your message..."
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
                         />
+                       </div>
+
+                        <input type="file" onChange={handleImageUpload} className="hidden" id="image-upload" />
+                        <label htmlFor="image-upload" className="ml-2 cursor-pointer">
+                            <AiOutlinePlus />
+                        </label>
 
                         <button
                             onClick={handleSendMessage}
                             className="ml-4 py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                            disabled={uploading}
                         >
-                            Send
+                            {uploading ? 'Uploading...' : 'Send'}
                         </button>
                     </div>
                 )}

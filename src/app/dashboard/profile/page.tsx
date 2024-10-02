@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
-import ImageUploader from "@/components/ImageUploader";
+import GalleryComponent from "@/components/GalleryComponent";
 import {UserType} from "@/types/user.type"; // Предполагается, что используется NextAuth для аутентификации
 
 const ProfilePage = () => {
@@ -168,7 +168,7 @@ const ProfilePage = () => {
 
         <div className="mt-8">
           <h3 className="text-lg font-medium mb-4">Gallery</h3>
-          <ImageUploader images={user?.images || []}/>
+          <GalleryComponent images={user?.images || []}/>
         </div>
       </div>
   );

@@ -2,19 +2,18 @@
 
 import React, { useEffect, useState } from 'react';
 import { FaTrash } from 'react-icons/fa';
+import useImageUploader from '@/hooks/useImageUploader'; // Подключаем наш хук
 
 interface ImageUploaderProps {
   images: string[];
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({ images }) => {
+const GalleryComponent: React.FC<ImageUploaderProps> = ({ images }) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadedImages, setUploadedImages] = useState<string[]>(images || []);
 
-  const generateRandomFilename = (originalFilename: string) => {
-    const randomSuffix = Math.random().toString(36).substr(2, 8);
-    return `${Date.now()}_${randomSuffix}_${originalFilename}`;
-  };
+  // Используем хук для загрузки изображений
+  const { uploadImage, uploading, error } = useImageUploader();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -24,46 +23,15 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ images }) => {
 
   const handleUpload = async () => {
     const uploadPromises = selectedFiles.map(async (file) => {
-      const formData = new FormData();
-      const randomFilename = generateRandomFilename(file.name);
-      formData.append('image', file, randomFilename);
+      const uploadedImageUrl = await uploadImage(file); // Загружаем файл через хук
 
-      try {
-        const imgBBResponse = await fetch(`https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB}`, {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!imgBBResponse.ok) {
-          throw new Error(`Error uploading to ImgBB: ${imgBBResponse.statusText}`);
-        }
-
-        const imgBBData = await imgBBResponse.json();
-        const fileUrl = imgBBData.data.url;
-
-        // Save image URL in the database
-        const saveResponse = await fetch('/api/upload', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ url: fileUrl }),
-        });
-
-        if (!saveResponse.ok) {
-          throw new Error(`Error saving URL: ${saveResponse.statusText}`);
-        }
-
-        // Update state with the new image URL
-        setUploadedImages((prevImages) => [...prevImages, fileUrl]);
-
-      } catch (error) {
-        console.error('Error:', error);
+      if (uploadedImageUrl) {
+        setUploadedImages((prevImages) => [...prevImages, uploadedImageUrl]); // Обновляем состояние с новыми изображениями
       }
     });
 
     await Promise.all(uploadPromises);
-    setSelectedFiles([]);
+    setSelectedFiles([]); // Очищаем файлы после загрузки
   };
 
   const handleDelete = async (imageUrl: string) => {
@@ -77,13 +45,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ images }) => {
       });
 
       if (!deleteResponse.ok) {
-        throw new Error(`Error deleting image: ${deleteResponse.statusText}`);
+        throw new Error(`Ошибка удаления изображения: ${deleteResponse.statusText}`);
       }
 
-      // Update state after successful deletion
+      // Удаляем изображение из состояния после успешного удаления
       setUploadedImages((prevImages) => prevImages.filter((url) => url !== imageUrl));
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Ошибка при удалении изображения:', error);
     }
   };
 
@@ -93,10 +61,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ images }) => {
     const newImages = [...uploadedImages];
     const dragIndex = newImages.indexOf(draggedImage);
 
-    // Remove the dragged image
+    // Удаляем перемещённое изображение
     newImages.splice(dragIndex, 1);
 
-    // Insert the dragged image at the drop index
+    // Вставляем изображение на новое место
     newImages.splice(index, 0, draggedImage);
 
     setUploadedImages(newImages);
@@ -113,7 +81,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ images }) => {
   return (
       <div>
         <input type="file" multiple onChange={handleFileChange} />
-        <button onClick={handleUpload}>Загрузить</button>
+        <button onClick={handleUpload} disabled={uploading}>
+          {uploading ? 'Загрузка...' : 'Загрузить'}
+        </button>
+
+        {error && <div className="text-red-500">{error}</div>}
 
         <div className="gallery">
           {uploadedImages.map((src, index) => (
@@ -139,4 +111,4 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ images }) => {
   );
 };
 
-export default ImageUploader;
+export default GalleryComponent;
