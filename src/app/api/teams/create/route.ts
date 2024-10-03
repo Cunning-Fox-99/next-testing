@@ -1,4 +1,4 @@
-// app/api/teams/create/route.ts
+// app/api/teams/create/page.ts
 import connectDB from "@/config/database";
 import Team from "@/models/Team";
 import { getUserIdFromRequest } from "@/utils/authUtils";

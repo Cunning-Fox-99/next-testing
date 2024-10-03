@@ -44,8 +44,8 @@ const CombinedHeaderContent = () => {
 const CombinedHeader = ({ children }: Readonly<{ children: React.ReactNode }>) => {
     return (
         <Provider store={store}>
-            <CombinedHeaderContent />
-            {children}
+                <CombinedHeaderContent />
+                {children}
         </Provider>
     );
 };

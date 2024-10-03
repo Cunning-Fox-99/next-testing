@@ -1,4 +1,4 @@
-// pages/api/notifications/route.ts
+// pages/api/notifications/page.ts
 import connectDB from "@/config/database";
 import Notification from "@/models/Notification";
 import { getUserIdFromRequest } from "@/utils/authUtils";

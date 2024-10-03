@@ -14,7 +14,8 @@ export interface ChatI {
     messages: {
         _id: string; // ID сообщения
         sender: string; // ID отправителя
-        content: string; // Содержимое сообщения (текст или URL для изображения)
+        content?: string; // Содержимое сообщения (текст или URL для изображения)
+        images?: string[]; // Массив картинок
         type: 'text' | 'image'; // Тип сообщения (текст или изображение)
         timestamp: Date; // Время отправки сообщения
     }[];

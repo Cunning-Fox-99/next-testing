@@ -1,4 +1,4 @@
-// src/app/api/me/update/route.ts
+// src/app/api/me/update/page.ts
 import { NextRequest, NextResponse } from 'next/server';
 import User from '@/models/User';
 import connectDB from '@/config/database';

@@ -1,4 +1,4 @@
-// app/api/teams/[id]/toggle-search-status/route.ts
+// app/api/teams/[id]/toggle-search-status/page.ts
 import connectDB from "@/config/database";
 import Team from "@/models/Team";
 import { getUserIdFromRequest } from "@/utils/authUtils";

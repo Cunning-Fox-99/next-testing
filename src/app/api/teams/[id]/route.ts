@@ -1,4 +1,4 @@
-// app/api/teams/[id]/route.ts
+// app/api/teams/[id]/page.ts
 import connectDB from "@/config/database";
 import Team from "@/models/Team";
 import Invitation from "@/models/Invitation";

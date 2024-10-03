@@ -1,4 +1,4 @@
-// app/api/invitations/[inviteId]/accept/route.ts
+// app/api/invitations/[inviteId]/accept/page.ts
 import connectDB from "@/config/database";
 import Invitation from "@/models/Invitation";
 import Team from "@/models/Team";  // Импортируем модель команды

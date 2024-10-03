@@ -1,4 +1,4 @@
-// app/api/teams/manage-images/route.ts
+// app/api/teams/manage-images/page.ts
 import connectDB from "@/config/database";
 import Team from "@/models/Team";
 import { getUserIdFromRequest } from "@/utils/authUtils";

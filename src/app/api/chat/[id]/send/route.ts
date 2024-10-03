@@ -44,23 +44,24 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
         // Извлекаем тело запроса
         const body = await request.json();
-        const { message } = body; // Извлекаем сообщение
+        const { message, images } = body; // Извлекаем сообщение и изображения
 
-        if (!message || !message.trim()) {
-            return NextResponse.json({ error: "Message cannot be empty" }, { status: 400 });
+        // Проверяем, что хотя бы одно поле (текст или изображения) не пустое
+        if ((!message || !message.trim()) && (!images || images.length === 0)) {
+            return NextResponse.json({ error: "Message or images are required" }, { status: 400 });
         }
 
         // Создаем новое сообщение с указанием отправителя
         const newMessage = {
             sender: userId, // Указываем отправителя
-            content: message.trim(), // Убедитесь, что содержимое не пустое
+            content: message?.trim() || '', // Если текст есть, убираем лишние пробелы
+            images: images || [], // Если изображения переданы, добавляем их
             timestamp: new Date(),
-            readBy: [userId], // Добавляем себя в массив прочитавших
+            readBy: [userId], // Добавляем отправителя в массив прочитавших
         };
 
         // Добавляем сообщение в чат
         chat.messages.push(newMessage);
-        console.log(chat)
 
         // Обновляем поле notReadedMessages для всех участников, кроме отправителя
         chat.participants.forEach((participant: any) => {
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
         return NextResponse.json({ chat }, { status: 200 });
     } catch (error) {
-        // console.error("Error sending message:", error);
+        console.error("Error sending message:", error);
         return NextResponse.json({ error: "Failed to send message" }, { status: 500 });
     }
 }

@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { AiOutlinePlus } from 'react-icons/ai';
+import Image from 'next/image';
 import { ChatI } from "@/types/chat.type";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import useImageUploader from '@/hooks/useImageUploader'; // Подключаем хук для загрузки изображений
-import Image from 'next/image';
+import ChatWindow from '@/components/chat/ChatWindow'; // Подключаем компонент ChatWindow
 
 const ChatsDetailPage = ({ params }: { params: { id: string } }) => {
     const router = useRouter();
@@ -15,15 +14,12 @@ const ChatsDetailPage = ({ params }: { params: { id: string } }) => {
 
     const [chatList, setChatList] = useState<ChatI[]>([]);
     const [activeChatId, setActiveChatId] = useState<string | null>(id || null);
-    const [newMessage, setNewMessage] = useState('');
-    const [selectedImage, setSelectedImage] = useState<File | null>(null); // Для хранения выбранного изображения
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-    const { uploadImage, uploading, error } = useImageUploader(); // Используем хук для загрузки изображения
-
     const user = useSelector((state: RootState) => state.user.user);
+
 
     const fetchChats = async () => {
         try {
@@ -51,61 +47,47 @@ const ChatsDetailPage = ({ params }: { params: { id: string } }) => {
     useEffect(() => {
         if (user) {
             setCurrentUserId(user._id);
-            fetchChats();
         }
     }, [user]);
+
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            fetchChats(); // обновляем список чатов
+        }, 5000); // например, каждые 5 секунд
+        fetchChats();
+        return () => clearInterval(intervalId); // очищаем интервал при размонтировании
+    }, []);
 
     const handleChatSelect = (chatId: string) => {
         setActiveChatId(chatId);
         router.push(`/dashboard/chats/${chatId}`);
     };
 
-    const handleSendMessage = async () => {
-        let messageContent = newMessage;
-        let messageType = 'text';
+    const handleSendMessage = async (message: string, images: string[]) => {
+        if (!currentUserId) return;
 
-        if (selectedImage) {
-            // Загружаем изображение
-            const uploadedImageUrl = await uploadImage(selectedImage);
-            if (uploadedImageUrl) {
-                messageContent = uploadedImageUrl; // Если изображение успешно загружено, сообщение — это ссылка на изображение
-                messageType = 'image';
+        try {
+            const res = await fetch(`/api/chat/${activeChatId}/send`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message, images }),
+            });
+
+            if (!res.ok) {
+                throw new Error('Failed to send message');
             }
-        }
 
-        if (messageContent && currentUserId) {
-            try {
-                const res = await fetch(`/api/chat/${activeChatId}/send`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ message: messageContent, type: messageType }),
-                });
-
-                if (!res.ok) {
-                    throw new Error('Failed to send message');
-                }
-
-                const data = await res.json();
-                setChatList((prevChats) =>
-                    prevChats.map((chat) =>
-                        chat._id === activeChatId ? data.chat : chat
-                    )
-                );
-
-                setNewMessage('');
-                setSelectedImage(null); // Очищаем выбранное изображение после отправки
-            } catch (error) {
-                console.error('Error sending message:', error);
-                setErrorMessage('Failed to send message');
-            }
-        }
-    };
-
-    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files && event.target.files.length > 0) {
-            setSelectedImage(event.target.files[0]);
+            const data = await res.json();
+            setChatList((prevChats) =>
+                prevChats.map((chat) =>
+                    chat._id === activeChatId ? data.chat : chat
+                )
+            );
+        } catch (error) {
+            console.error('Error sending message:', error);
+            setErrorMessage('Failed to send message');
         }
     };
 
@@ -142,7 +124,7 @@ const ChatsDetailPage = ({ params }: { params: { id: string } }) => {
                                 <div className="text-sm font-medium">
                                     {chat.chatWith.username || chat.chatWith.email}
                                 </div>
-                                <div className="text-s text-gray-500">{chat.messages.at(-1)?.content}</div>
+                                <div className="text-s text-gray-500">{chat.messages.at(-1)?.content || chat.messages.at(-1)?.images ? 'Image' : ''}</div>
                             </div>
                         </div>
                     ))}
@@ -150,54 +132,15 @@ const ChatsDetailPage = ({ params }: { params: { id: string } }) => {
             </div>
 
             {/* Окно активного чата справа */}
-            <div className="flex flex-col w-2/3">
-                <div className="flex-grow overflow-y-auto p-4 space-y-2" style={{ maxHeight: 'calc(100vh - 80px)' }}>
-                    {!activeChat ? (
-                        <div className="text-center text-gray-500">Chat not selected</div>
-                    ) : (
-                        activeChat.messages.map((msg, idx) => (
-                            <div
-                                key={idx}
-                                className={`flex w-fit flex-col p-2 rounded-md ${msg.sender === currentUserId ? 'bg-green-100 items-end ml-auto' : 'bg-blue-100'}`}
-                            >
-                                <div className="text-xs text-gray-500">
-                                    {msg.sender === currentUserId ? 'You' : activeChat.chatWith?.username || activeChat.chatWith.email}
-                                </div>
-                                {msg.type === 'image' ? (
-                                    <img src={msg.content} alt="Message Image" className="max-w-full h-auto" />
-                                ) : (
-                                    msg.content
-                                )}
-                            </div>
-                        ))
-                    )}
-                </div>
-
-                {/* Зона ввода сообщений */}
-                {activeChat && (
-                    <div className="border-t-2 border-gray-300 p-4 flex items-center justify-between fixed bottom-0 w-2/3 bg-white">
-                       <div className="flex flex-col w-full">
-                        <textarea
-                            className="flex-grow p-2 border rounded-md focus:outline-none"
-                            placeholder="Type your message..."
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                        />
-                       </div>
-
-                        <input type="file" onChange={handleImageUpload} className="hidden" id="image-upload" />
-                        <label htmlFor="image-upload" className="ml-2 cursor-pointer">
-                            <AiOutlinePlus />
-                        </label>
-
-                        <button
-                            onClick={handleSendMessage}
-                            className="ml-4 py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-                            disabled={uploading}
-                        >
-                            {uploading ? 'Uploading...' : 'Send'}
-                        </button>
-                    </div>
+            <div className="w-2/3">
+                {activeChat && currentUserId ? (
+                    <ChatWindow
+                        activeChat={activeChat}
+                        currentUserId={currentUserId}
+                        onSendMessage={handleSendMessage}
+                    />
+                ) : (
+                    <div className="text-center text-gray-500">Please select a chat to view messages.</div>
                 )}
             </div>
         </div>

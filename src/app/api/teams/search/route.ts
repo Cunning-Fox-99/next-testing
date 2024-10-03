@@ -1,4 +1,4 @@
-// app/api/teams/search/route.ts
+// app/api/teams/search/page.ts
 import connectDB from "@/config/database";
 import Team from "@/models/Team";
 import { NextRequest, NextResponse } from "next/server";

@@ -4,14 +4,15 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
-    "noEmit": true,
+    "noEmit": false, // Убедитесь, что это значение установлено на false
     "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
+    "module": "esnext", // ESM
+    "moduleResolution": "node", // Измените на 'node' для лучшей совместимости
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "outDir": "./dist",
     "plugins": [
       {
         "name": "next"

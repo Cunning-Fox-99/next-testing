@@ -1,4 +1,4 @@
-// app/api/delete-image/route.ts
+// app/api/delete-image/page.ts
 import connectDB from '@/config/database';
 import User from '@/models/User';
 import { getUserIdFromRequest } from '@/utils/authUtils';
