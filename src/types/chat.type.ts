@@ -19,5 +19,10 @@ export interface ChatI {
         type: 'text' | 'image'; // Тип сообщения (текст или изображение)
         timestamp: Date; // Время отправки сообщения
     }[];
+    lastMessage?: {
+        content: string;
+        images: string[]
+        sender: string
+    };
     notReadedMessages?: { [userId: string]: number }; // Непрочитанные сообщения для каждого пользователя
 }

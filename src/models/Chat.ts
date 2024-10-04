@@ -21,5 +21,14 @@ const ChatSchema = new Schema(
     { timestamps: true }
 );
 
+ChatSchema.virtual('lastMessage').get(function() {
+    // Возвращаем последнее сообщение или null, если сообщений нет
+    return this.messages.length > 0 ? this.messages[this.messages.length - 1] : null;
+});
+
+// Добавляем опцию, чтобы виртуальные поля преобразовывались в JSON
+ChatSchema.set('toObject', { virtuals: true });
+ChatSchema.set('toJSON', { virtuals: true });
+
 const Chat = models.Chat || model('Chat', ChatSchema);
 export default Chat;
